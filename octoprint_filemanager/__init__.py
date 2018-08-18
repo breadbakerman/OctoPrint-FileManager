@@ -88,7 +88,7 @@ class FilemanagerPlugin(octoprint.plugin.TemplatePlugin,
 
 	def get_template_configs(self):
 		return [
-			dict(type="tab", template="filemanager_tab.jinja2", custom_bindings=True)
+			dict(type="tab", name="Dateien", template="filemanager_tab.jinja2", custom_bindings=True)
 		]
 
 	def _copyMoveCommand(self, workerID, target, command, source, destination):
@@ -379,12 +379,12 @@ class FilemanagerPlugin(octoprint.plugin.TemplatePlugin,
 
 				# version check: github repository
 				type="github_release",
-				user="Salandora",
+				user="breadbakerman",
 				repo="OctoPrint-FileManager",
 				current=self._plugin_version,
 
 				# update method: pip
-				pip="https://github.com/Salandora/OctoPrint-FileManager/archive/{target_version}.zip"
+				pip="https://github.com/breadbakerman/OctoPrint-FileManager/archive/{target_version}.zip"
 			)
 		)
 

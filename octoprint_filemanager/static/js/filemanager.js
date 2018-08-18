@@ -14,6 +14,7 @@ $(function() {
         self.files = parameters[0];
         self.loginState = parameters[1];
         self.slicing = parameters[2];
+        self.printerState = parameters[3];
 
         self.selectedFiles = ko.observableArray([]);
         self.currentPath = ko.observable("");
@@ -140,6 +141,9 @@ $(function() {
         self.isSelected = function(data) {
             return self.selectedFiles.indexOf(data) != -1;
         };
+        self.isOpen = function(data) {
+            return data.name === self.printerState.filename();
+        };
 
         self.templateFor = function(data) {
             return "filemanager_template_" + data.type;
@@ -172,6 +176,9 @@ $(function() {
         };
         self.enableUploadSD = function() {
             return self.loginState.isUser() && self.selectedFiles().length == 1 && self.files.isSdReady() && self.checkSelectedOrigin("local");
+        };
+        self.enableUpload = function() {
+            return self.loginState.isUser();
         };
         self.enableRemove = function() {
             if (!self.loginState.isUser() || self.selectedFiles().length == 0)
@@ -229,6 +236,15 @@ $(function() {
 
             OctoPrint.postJson(self.API_FILESURL + "local/" + path, data);
         };
+        self.upload = function() {
+            if (!self.enableUpload())
+                return;
+
+            $($(this).get(0).files).each(function (i, file) {
+                OctoPrint.upload("api/files/local", file, false, {path: self.currentPath()});
+                return true;
+            });
+        };
         self.remove = function() {
             if (!self.enableRemove())
                 return;
@@ -252,7 +268,11 @@ $(function() {
                 });
             }
             else {
-                self.files.removeFile(self.selectedFiles()[0]);
+                if (self.selectedFiles()[0].type === 'folder') {
+                    self.files.removeFolder(self.selectedFiles()[0]);
+                } else {
+                    self.files.removeFile(self.selectedFiles()[0]);
+                }
             }
         };
         self.slice = function() {
@@ -388,12 +408,15 @@ $(function() {
             });
 
             self.addFolderDialog = $("#add_folder_dialog");
+
+            self.tabPanel = $("#tab_plugin_filemanager");
+            self.tabPanel.find('.fileinput-button input[type="file"]').on('change', self.upload);
         };
     }
 
     OCTOPRINT_VIEWMODELS.push([
         FilemanagerViewModel,
-        ["gcodeFilesViewModel", "loginStateViewModel", "slicingViewModel"],
+        ["gcodeFilesViewModel", "loginStateViewModel", "slicingViewModel", "printerStateViewModel"],
         ["#tab_plugin_filemanager", "#fileManagerNameDialog"]
     ]);
 });

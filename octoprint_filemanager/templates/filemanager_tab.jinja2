@@ -1,9 +1,13 @@
 <div class="btn-toolbar">
     <div class="btn-group">
-        <button class="btn" title="{{ _('Download') }}" data-bind="click: $root.download, css: { disabled: !$root.enableDownload() }"><i class="icon-download-alt"></i></button>
+        <span class="btn fileinput-button" data-bind="css: {disabled: !$root.enableUpload()}" style="float: none;" title="{{ _('Upload') }}">
+            <i class="fa fa-upload"></i>
+            <input id="gcode_upload" accept="{{ ",".join(supportedExtensions) }}" type="file" name="file" class="fileinput-button" data-bind="enable: $root.enableUpload()" multiple>
+        </span>
         {% if enableSdSupport %}
         <button class="btn" title="{{ _('Upload to SD') }}" data-bind="click: $root.uploadSD, css: { disabled: !$root.enableUploadSD() }"><i class="icon-upload-alt"></i></button>
         {% endif %}
+        <button class="btn" title="{{ _('Download') }}" data-bind="click: $root.download, css: { disabled: !$root.enableDownload() }"><i class="icon-download-alt"></i></button>
         <button class="btn" title="{{ _('Remove') }}" data-bind="click: $root.remove, css: { disabled: !$root.enableRemove() }"><i class="icon-trash"></i></button>
         <button class="btn" title="{{ _('Slice') }}" data-bind="click: $root.slice, css: { disabled: !$root.enableSlicing() }"><i class="icon-magic"></i></button>
         <button class="btn" title="{{ _('Load') }}" data-bind="click: function() { $root.loadFile(false); }, css: { disabled: !$root.enableSelect(false) }"><i class="icon-folder-open"></i></button>
@@ -64,7 +68,7 @@
     <div class="row-fluid">
         <div class="span12 header">
             <div class="span6">{{ _('Name') }}</div>
-            <div class="span4">{{ _('Created') }}</div>
+            <div class="span4">{{ _('Uploaded') }}</div>
             <div class="span2">{{ _('Size') }}</div>
         </div>
         <div class="span12 filemanager_files_top">
@@ -78,12 +82,12 @@
                 <div class="span12 row-fluid" data-bind="singleOrDoubleClick: { click: $root.selectItem, dblclick: $root.dblClick }, css: { 'selected': $root.isSelected($data) }, attr: { id: $root.getEntryId($data) }, template: { name: $root.templateFor($data), data: $data }"></div>
                 <!-- /ko -->
                 <!-- ko slimScrolledForeach: filesOnlyList -->
-                <div class="span12 row-fluid" data-bind="singleOrDoubleClick: { click: $root.selectItem, dblclick: $root.dblClick }, css: { 'selected': $root.isSelected($data) }, attr: { id: $root.getEntryId($data) }, template: { name: $root.templateFor($data), data: $data }"></div>
+                <div class="span12 row-fluid" data-bind="singleOrDoubleClick: { click: $root.selectItem, dblclick: $root.dblClick }, css: { 'selected': $root.isSelected($data), 'open': $root.isOpen($data) }, attr: { id: $root.getEntryId($data) }, template: { name: $root.templateFor($data), data: $data }"></div>
                 <!-- /ko -->
                 <!-- /ko -->
                 <!-- ko if: listStyle() == 'files_folders' -->
                 <!-- ko slimScrolledForeach: filesOnlyList -->
-                <div class="span12 row-fluid" data-bind="singleOrDoubleClick: { click: $root.selectItem, dblclick: $root.dblClick }, css: { 'selected': $root.isSelected($data) }, attr: { id: $root.getEntryId($data) }, template: { name: $root.templateFor($data), data: $data }"></div>
+                <div class="span12 row-fluid" data-bind="singleOrDoubleClick: { click: $root.selectItem, dblclick: $root.dblClick }, css: { 'selected': $root.isSelected($data), 'open': $root.isOpen($data) }, attr: { id: $root.getEntryId($data) }, template: { name: $root.templateFor($data), data: $data }"></div>
                 <!-- /ko -->
                 <!-- ko slimScrolledForeach: foldersOnlyList -->
                 <div class="span12 row-fluid" data-bind="singleOrDoubleClick: { click: $root.selectItem, dblclick: $root.dblClick }, css: { 'selected': $root.isSelected($data) }, attr: { id: $root.getEntryId($data) }, template: { name: $root.templateFor($data), data: $data }"></div>
@@ -91,7 +95,7 @@
                 <!-- /ko -->
                 <!-- ko if: listStyle() == 'mixed' -->
                 <!-- ko slimScrolledForeach: fileListHelper.paginatedItems -->
-                <div class="span12 row-fluid" data-bind="singleOrDoubleClick: { click: $root.selectItem, dblclick: $root.dblClick }, css: { 'selected': $root.isSelected($data) }, attr: { id: $root.getEntryId($data) }, template: { name: $root.templateFor($data), data: $data }"></div>
+                <div class="span12 row-fluid" data-bind="singleOrDoubleClick: { click: $root.selectItem, dblclick: $root.dblClick }, css: { 'selected': $root.isSelected($data), 'open': $root.isOpen($data) }, attr: { id: $root.getEntryId($data) }, template: { name: $root.templateFor($data), data: $data }"></div>
                 <!-- /ko -->
                 <!-- /ko -->
             </div>
@@ -100,19 +104,24 @@
 </div>
 
 <script type="text/html" id="filemanager_template_machinecode">
-    <div class="span6 title" data-bind="css: $root.files.getSuccessClass($data), text: name"></div>
+    <div class="span6 title" data-bind="css: $root.files.getSuccessClass($data), text: display"></div>
     <div class="span4 uploaded" data-bind="text: formatTimeAgo(date)"></div>
     <div class="span2 size" data-bind="text: formatSize(size)"></div>
+    <div class="additionalInfoToggle" data-bind="css: {hide: !$root.files.enableAdditionalData($data)}" onclick="$(this).parent().find('.additionalInfo').slideToggle(150); event.cancelBubble = true;" title="{{ _('Additional data') }}"><i class="fa fa-info-circle"></i></div>
+    <div class="additionalInfo muted hide">
+        <div data-bind="visible: display && name != display"><small class="internal">{{ _('Internal') }}: <span data-bind="text: name"></span></small></div>
+        <small data-bind="html: $root.files.getAdditionalData($data)"></small>
+    </div>
 </script>
 
 <script type="text/html" id="filemanager_template_model">
-    <div class="span6 title" data-bind="text: name"></div>
+    <div class="span6 title" data-bind="text: display"></div>
     <div class="span4 uploaded" data-bind="text: formatTimeAgo(date)"></div>
     <div class="span2 size" data-bind="text: formatSize(size)"></div>
 </script>
 
 <script type="text/html" id="filemanager_template_folder">
-    <div class="span6 title" data-bind=""><i class="icon-folder-open"></i><span><!-- ko text: name --><!-- /ko --><a href="#" style="float: right; padding-right: 20px;" class="hidden-desktop" data-bind="click: $root.dblClick">{{  _('Open') }}</a></span> </div>
+    <div class="span6 title" data-bind=""><i class="icon-folder-open"></i><span><!-- ko text: display --><!-- /ko --><a href="#" style="float: right; padding-right: 20px;" class="hidden-desktop" data-bind="click: $root.dblClick">{{  _('Open') }}</a></span> </div>
     <div class="span4 uploaded" data-bind="text: formatTimeAgo(date)"></div>
     <div class="span2 size" data-bind="text: formatSize(size)"></div>
 </script>

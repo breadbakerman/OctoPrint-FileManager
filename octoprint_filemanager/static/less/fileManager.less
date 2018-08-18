@@ -37,6 +37,8 @@
     padding: 8px;
     line-height: 2*@baseLineHeight;
     border-bottom: 1px solid @tableBorder;
+    cursor: default;
+    user-select: none;
   }
 
   .selected {
@@ -48,6 +50,30 @@
   .entry-hover div:hover {
     background-color: @tableBackgroundHover;
   }
+  
+  .additionalInfoToggle {
+    text-align: right;
+  }
 
+  .additionalInfo {
+    font-weight: normal;
+    line-height: 1.2em;
+  }
+  
+  .open:before {
+    content: "\f02f";
+    color: #fff;
+    margin-right: 5px;
+    text-decoration: inherit;
+    display: inline-block;
+    speak: none;
+    font-family: FontAwesome3;
+    font-weight: normal;
+    font-style: normal;
+    text-decoration: inherit;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+ 
   @import "bootstrap\responsive-utilities.less";
 }
